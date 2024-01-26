@@ -9,13 +9,15 @@
 // @grant        GM_info
 // @icon         https://github.com/onlypuppy7/ShellFarmClientShellShockers/blob/main/icon.png?raw=true
 // @require      https://cdn.jsdelivr.net/npm/tweakpane@3.1.10/dist/tweakpane.min.js
+// @downloadURL  https://update.greasyfork.org/scripts/485745/ShellFarm%20-%20Utilities%20for%20Shell%20Shockers.user.js
+// @updateURL    https://update.greasyfork.org/scripts/485745/ShellFarm%20-%20Utilities%20for%20Shell%20Shockers.meta.js
 
 // version naming:
     //3.#.#-pre[number] for development versions, increment for every commit (not full release)
     //3.#.#-release for release
 //this ensures that each version of the script is counted as different
 
-// @version      1.0.1
+// @version      1.0.2
 
 // @match        *://shellshock.io/*
 // @match        *://algebra.best/*
@@ -304,7 +306,7 @@
         initFolder({ location: tp.mainPanel, title: "Render", storeAs: "renderFolder",});
         initTab({ location: tp.renderFolder, storeAs: "renderTab" });
             initModule({ location: tp.renderTab.pages[0], title: "FOV", storeAs: "fov", slider: {min: 0, max: 360, step: 3}, defaultValue: 72,});
-            initModule({ location: tp.renderTab.pages[0], title: "Zoom FOV", storeAs: "zoom", slider: {min: 0, max: 72, step: 3}, defaultValue: 15, bindLocation: tp.renderTab.pages[1], defaultBind: "C",});
+            initModule({ location: tp.renderTab.pages[0], title: "Zoom FOV", storeAs: "zoom", slider: {min: 0, max: 72, step: 1}, defaultValue: 15, bindLocation: tp.renderTab.pages[1], defaultBind: "C",});
             tp.renderTab.pages[0].addSeparator();
             initModule({ location: tp.renderTab.pages[0], title: "Egg Size", storeAs: "eggSize", slider: {min: 0, max: 10, step: 0.25}, defaultValue: 1,});
             tp.renderTab.pages[0].addSeparator();
