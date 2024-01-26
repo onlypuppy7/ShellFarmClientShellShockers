@@ -2,14 +2,12 @@
 // @name         ShellFarm - Utilities for Shell Shockers.
 // @description  Some useful mods for Shell Shockers, including infinite history, FOV and more. Bindable too.
 // @author       onlypuppy7
-// @namespace    http://github.com/Hydroflame522/StateFarmClient/
-// @supportURL   http://github.com/Hydroflame522/StateFarmClient/issues/
+// @namespace    https://github.com/onlypuppy7/ShellFarmClientShellShockers/
+// @supportURL   https://github.com/onlypuppy7/ShellFarmClientShellShockers/issues/
 // @license      GPL-3.0
 // @run-at       document-start
-// @grant        GM_setValue
-// @grant        GM_getValue
 // @grant        GM_info
-// @icon         https://raw.githubusercontent.com/Hydroflame522/StateFarmClient/main/icons/StateFarmClientLogo384px.png
+// @icon         https://github.com/onlypuppy7/ShellFarmClientShellShockers/blob/main/icon.png?raw=true
 // @require      https://cdn.jsdelivr.net/npm/tweakpane@3.1.10/dist/tweakpane.min.js
 
 // version naming:
@@ -17,7 +15,7 @@
     //3.#.#-release for release
 //this ensures that each version of the script is counted as different
 
-// @version      1.0.0
+// @version      1.0.1
 
 // @match        *://shellshock.io/*
 // @match        *://algebra.best/*
@@ -556,6 +554,37 @@
         `);
         document.body.appendChild(playerstatsElement);
         playerstatsElement.style.display = 'none';
+
+        
+        const rootTheme = `
+        --tp-base-background-color: hsla(198, 100%, 50%, 1.00);
+        --tp-base-shadow-color: hsla(0, 0%, 0%, 0.2);
+        --tp-button-background-color: hsla(0, 0%, 100%, 1.00);
+        --tp-button-background-color-active: hsla(0, 0%, 85%, 1.00);
+        --tp-button-background-color-focus: hsla(0, 0%, 90%, 1.00);
+        --tp-button-background-color-hover: hsla(0, 0%, 95%, 1.00);
+        --tp-button-foreground-color: hsla(230, 20%, 11%, 1.00);
+        --tp-container-background-color: hsla(0, 0%, 0%, 0.20);
+        --tp-container-background-color-active: hsla(0, 0%, 0%, 0.35);
+        --tp-container-background-color-focus: hsla(0, 0%, 0%, 0.30);
+        --tp-container-background-color-hover: hsla(0, 0%, 0%, 0.25);
+        --tp-container-foreground-color: hsla(0, 0%, 100%, 0.90);
+        --tp-groove-foreground-color: hsla(0, 0%, 0%, 0.50);
+        --tp-input-background-color: hsla(0, 0%, 0%, 0.50);
+        --tp-input-background-color-active: hsla(0, 0%, 0%, 0.65);
+        --tp-input-background-color-focus: hsla(0, 0%, 0%, 0.60);
+        --tp-input-background-color-hover: hsla(0, 0%, 0%, 0.55);
+        --tp-input-foreground-color: hsla(0, 0%, 100%, 0.90);
+        --tp-label-foreground-color: hsla(0, 0%, 100%, 0.90);
+        --tp-monitor-background-color: hsla(0, 0%, 0%, 0.50);
+        --tp-monitor-foreground-color: hsla(0, 0%, 100%, 0.50);`;    
+
+        //menu customisation (apply font, button widths, adjust checkbox right slightly, make menu appear on top, add anim to message)
+        const themeElement = document.createElement('style');
+        themeElement.textContent = `
+            :root { ${rootTheme} }
+        `;
+        document.head.appendChild(themeElement);
     };
     const makeDraggable = function(element,notMenu) {
         if (element) {
@@ -827,9 +856,6 @@
             if (match) js = js.replace(match[0], match[0] + `||window.getSkinHack()`);
             //reset join/leave msgs
             js = js.replace(',console.log("joinGame()',',window.newGame=true,console.log("value changed, also joinGame()');
-            //bypass chat filter
-            match = new RegExp(`"&&\\s*([a-zA-Z]+)\\.indexOf\\("<"\\)<0`).exec(js)[1];
-            js=js.replace('.value.trim()','.value.trim();'+match+'=window.modifyChat('+match+')')
             //get rid of tutorial popup because its a stupid piece of shit
             js=js.replace(',vueApp.onTutorialPopupClick()','');
 
