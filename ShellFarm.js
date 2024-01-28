@@ -17,7 +17,7 @@
     //3.#.#-release for release
 //this ensures that each version of the script is counted as different
 
-// @version      1.0.2
+// @version      1.0.3
 
 // @match        *://shellshock.io/*
 // @match        *://algebra.best/*
@@ -103,7 +103,7 @@
     let onlinePlayersArray=[];
     let bindsArray={};
     const tp={}; // <-- tp = tweakpane
-    let ss,msgElement,resetModules,playersInGame,coordElement,gameInfoElement,playerstatsElement,ranOneTime,lastWeaponBox,lastChatItemLength,configMain;
+    let ss,msgElement,resetModules,noPointerPause,playersInGame,coordElement,gameInfoElement,playerstatsElement,ranOneTime,lastWeaponBox,lastChatItemLength,configMain;
     let previousDetail;
 
     //menu interaction functions
@@ -183,6 +183,7 @@
     document.addEventListener("keydown", function (event) {
         event=(event.code.replace("Key",""));
         isKeyToggled[event]=true;
+        if (event=="Escape") { noPointerPause=false; unsafeWindow.document.onpointerlockchange() };
     });
     document.addEventListener("keyup", function (event) {
         event=(event.code.replace("Key",""));
@@ -333,6 +334,14 @@
         initFolder({ location: tp.mainPanel, title: "Misc", storeAs: "miscFolder",});
         initTab({ location: tp.miscFolder, storeAs: "miscTab" })
             initModule({ location: tp.miscTab.pages[0], title: "Unlock Skins", storeAs: "unlockSkins", bindLocation: tp.miscTab.pages[1],});
+            tp.miscTab.pages[0].addSeparator();
+            initModule({ location: tp.miscTab.pages[0], title: "Switch Focus", storeAs: "unfocus", bindLocation: tp.miscTab.pages[1], button: "FOCUS/UNFOCUS", defaultBind: "P", clickFunction: function(){
+                if (document.pointerLockElement !== null) { //currently locked
+                    noPointerPause=true; unsafeWindow.document.exitPointerLock();
+                } else if (noPointerPause) { //already unlocked?
+                    noPointerPause=false; canvas.requestPointerLock();
+                };
+            },});
         //CLIENT MODULES
         initFolder({ location: tp.mainPanel, title: "Client & About", storeAs: "clientFolder",});
         initTab({ location: tp.clientFolder, storeAs: "clientTab" })
@@ -705,7 +714,7 @@
         });
         if (unsafeWindow.extern.inGame) {
             if (extract("gameInfo")) {
-                let gameInfoText=ss.GAMECODE+" | "+playersInGame+"/18 | "+(18-playersInGame)+" slots remaining.";
+                let gameInfoText=ss.GAMECODE+" | "+playersInGame+"/18 | "+(18-playersInGame)+" slots remaining. | Server: "+unsafeWindow.vueData.currentRegionId+" | Gamemode: "+findKeyByValue(unsafeWindow.extern.GameType,unsafeWindow.vueApp.game.gameType)+" | Map: "+unsafeWindow.vueApp.game.mapName;
                 gameInfoElement.innerText = gameInfoText;
                 void gameInfoElement.offsetWidth;
                 gameInfoElement.style.display = '';
@@ -786,8 +795,8 @@
         unsafeWindow.getSkinHack = function () {
             return extract("unlockSkins");
         };
-        unsafeWindow.getAdminSpoof = function () {
-            return extract("adminSpoof");
+        unsafeWindow.getPointerEscape = function () {
+            return noPointerPause;
         };
         const originalXHROpen = XMLHttpRequest.prototype.open; //wtf??? libertymutual collab??????
         const originalXHRGetResponse = Object.getOwnPropertyDescriptor(XMLHttpRequest.prototype, 'response');
@@ -860,6 +869,8 @@
             js = js.replace(',console.log("joinGame()',',window.newGame=true,console.log("value changed, also joinGame()');
             //get rid of tutorial popup because its a stupid piece of shit
             js=js.replace(',vueApp.onTutorialPopupClick()','');
+            //pointer escape
+            js=js.replace('onpointerlockchange=function(){','onpointerlockchange=function(){if (window.getPointerEscape()) {return};');
 
             js=js.replace('console.log("startShellShockers"),', `console.log("SHELLFARM ACTIVE!"),`);
             console.log(js);
