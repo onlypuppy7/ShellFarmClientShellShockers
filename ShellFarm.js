@@ -17,7 +17,7 @@
     //3.#.#-release for release
 //this ensures that each version of the script is counted as different
 
-// @version      1.0.3
+// @version      1.0.4
 
 // @match        *://shellshock.io/*
 // @match        *://algebra.best/*
@@ -102,6 +102,7 @@
     const isKeyToggled={};
     let onlinePlayersArray=[];
     let bindsArray={};
+    const H={}; // obfuscated shit lol
     const tp={}; // <-- tp = tweakpane
     let ss,msgElement,resetModules,noPointerPause,playersInGame,coordElement,gameInfoElement,playerstatsElement,ranOneTime,lastWeaponBox,lastChatItemLength,configMain;
     let previousDetail;
@@ -164,6 +165,14 @@
                 };
             };
         };
+    };
+    const findKeyByValue = function(obj, value) {
+        for (const key in obj) {
+            if (obj[key] === value) {
+                return key;
+            };
+        };
+        return null; // Return null if the value is not found
     };
     document.addEventListener('mousedown', function (event) {
         if (event.button === 2) {
@@ -638,12 +647,12 @@
         return Math.abs(obj1.yaw-obj2.yaw)+Math.abs(obj1.pitch-obj2.pitch);
     };
     const getDirectionVectorFacingTarget = function (target,vectorPassed,offsetY) {
-        target = vectorPassed ? target : target.actor.mesh.position;
+        target = vectorPassed ? target : target[H.actor].mesh.position;
         offsetY=offsetY||0;
         return {
-            x: target.x - ss.MYPLAYER.actor.mesh.position.x,
-            y: target.y - ss.MYPLAYER.actor.mesh.position.y+offsetY,
-            z: target.z - ss.MYPLAYER.actor.mesh.position.z,
+            x: target.x - ss.MYPLAYER[H.actor].mesh.position.x,
+            y: target.y - ss.MYPLAYER[H.actor].mesh.position.y+offsetY,
+            z: target.z - ss.MYPLAYER[H.actor].mesh.position.z,
         };
     };
     const reverse_string = function (str) { return str.split("").reverse().join("") };
@@ -753,7 +762,7 @@
             if (extract("playerStats")) {
                 let playerStates="";
                 ss.PLAYERS.forEach(player=>{
-                    if (player && (player!==ss.MYPLAYER) && player.playing && (player.hp>0) && ((!ss.MYPLAYER.team)||( player.team!==ss.MYPLAYER.team))) {
+                    if (player && (player!==ss.MYPLAYER) && player[H.playing] && (player.hp>0) && ((!ss.MYPLAYER.team)||( player.team!==ss.MYPLAYER.team))) {
                         playerStates=playerStates+player.name+": "+Math.round(player.hp)+" HP\n";
                     };
                 });
@@ -763,9 +772,9 @@
                 playerstatsElement.style.display = '';
             };
             if (extract("showCoordinates")) {
-                const fonx = Number((ss.MYPLAYER.actor.mesh.position.x).toFixed(3));
-                const fony = Number((ss.MYPLAYER.actor.mesh.position.y).toFixed(3));
-                const fonz = Number((ss.MYPLAYER.actor.mesh.position.z).toFixed(3));
+                const fonx = Number((ss.MYPLAYER[H.actor].mesh.position.x).toFixed(3));
+                const fony = Number((ss.MYPLAYER[H.actor].mesh.position.y).toFixed(3));
+                const fonz = Number((ss.MYPLAYER[H.actor].mesh.position.z).toFixed(3));
                 const yaw = Number((ss.MYPLAYER.yaw).toFixed(3)); //could i function this? yea
                 const pitch = Number((ss.MYPLAYER.pitch).toFixed(3));
                 const personalCoordinate = `XYZ: ${fonx}, ${fony}, ${fonz} Rot: ${yaw}, ${pitch}`;
@@ -830,10 +839,10 @@
             };
             console.log('%cSHELLFARM INJECTION STAGE 1: GATHER VARS', 'color: yellow; font-weight: bold; font-size: 1.2em; text-decoration: underline;');
             try {
-                getVar("PLAYERS", '=([a-zA-Z]+)\\[this\\.controlledBy\\]');
-                getVar("MYPLAYER", '&&([a-zA-Z]+)\\.grenadeCountdown<=0\\)this\\.cancelGrenade');
+                getVar("PLAYERS", '([a-zA-Z]+)\\[[a-zA-Z]+\\]\\.hp=100');
+                getVar("MYPLAYER", '\\),([a-zA-Z]+)\\.pitch=Math\\.clamp\\(');
                 getVar("TEAMCOLORS", '\\{([a-zA-Z_$]+)\\.themClass\\[');
-                getVar("GAMECODE", 'gameCode:([a-zA-Z]+)\\|\\|');
+                getVar("GAMECODE", '\\{crazyShare:([a-zA-Z]+)\\}');
 
                 createPopup("ShellFarm Script injected!","success");
                 console.log(injectionString,allFuncName);
@@ -843,43 +852,72 @@
                 console.log(err);
                 return js;
             };
+
+            const modifyJS = function(find,replace) {
+                let oldJS = js;
+                js = js.replace(find,replace);
+                if (oldJS !== js) {
+                    console.log("%cReplacement successful! Injected code: "+replace, 'color: green; font-weight: bold; font-size: 0.6em; text-decoration: italic;');
+                } else {
+                    console.log("%cReplacement failed! Attempted to replace "+find+" with: "+replace, 'color: red; font-weight: bold; font-size: 0.6em; text-decoration: italic;');
+                };
+            };
+
             console.log('%cSHELLFARM INJECTION STAGE 2: INJECT VAR RETRIEVAL FUNCTION AND MAIN LOOP', 'color: yellow; font-weight: bold; font-size: 1.2em; text-decoration: underline;');
             //hook for main loop function in render loop
-            match=js.match(/\.engine\.runRenderLoop\(function\(\)\{([a-zA-Z]+)\(/);
-            js = js.replace(`\.engine\.runRenderLoop\(function\(\)\{${match[1]}\(`,`.engine.runRenderLoop(function (){${match[1]}(),window["${functionNames.retrieveFunctions}"]({${injectionString}},true`);
-            js = js.replace('console.log("After Game Ready"),', `console.log("After Game Ready: ShellFarm is also tying to add vars..."),window["${functionNames.retrieveFunctions}"]({${injectionString}}),`);
+            match=js.match(/\.engine\.([a-zA-Z]+)\(\(function\(\)\{!/);
+            console.log(match);
+            modifyJS('.engine.'+match[1]+'((function(){',`.engine.${match[1]}((function(){if(window["${functionNames.retrieveFunctions}"]({${injectionString}},true)){return};`);
+            modifyJS('console.log("After Game Ready"),', `console.log("After Game Ready: ShellFarm is also trying to add vars..."),window["${functionNames.retrieveFunctions}"]({${injectionString}}),`);
             console.log('%cSuccess! Variable retrieval and main loop ss.', 'color: green; font-weight: bold;');
             //hook for fov mods
-            js = js.replace(/\.fov\s*=\s*1\.25/g, '.fov = window.fixCamera()');
-            js = js.replace(/\.fov\s*\+\s*\(1\.25/g, '.fov + (window.fixCamera()');
+            modifyJS(/\.fov\s*=\s*1\.25/g, '.fov = window.fixCamera()');
+            modifyJS(/\.fov\s*\+\s*\(1\.25/g, '.fov + (window.fixCamera()');
             //chat mods: disable chat culling
             const somethingLength=/\.length>4&&([a-zA-Z]+)\[0\]\.remove\(\),/.exec(js)[1];
-            js = js.replace(new RegExp(`\\.length>4&&${somethingLength}\\[0\\]\\.remove\\(\\),`),`.length>window.getChatLimit()&&${somethingLength}[0].remove(),`);
+            modifyJS(new RegExp(`\\.length>4&&${somethingLength}\\[0\\]\\.remove\\(\\),`),`.length>window.getChatLimit()&&${somethingLength}[0].remove(),`);
             //chat mods: disable filter (credit to A3+++ for this finding)
             const filterFunction=/\|\|([a-zA-Z]+)\([a-zA-Z]+.normalName/.exec(js)[1];
             const thingInsideFilterFunction=new RegExp(`!${filterFunction}\\(([a-zA-Z]+)\\)`).exec(js)[1];
-            js = js.replace(`!${filterFunction}(${thingInsideFilterFunction})`,`((!${filterFunction}(${thingInsideFilterFunction}))||window.getDisableChatFilter())`);
+            modifyJS(`!${filterFunction}(${thingInsideFilterFunction})`,`((!${filterFunction}(${thingInsideFilterFunction}))||window.getDisableChatFilter())`);
             //chat mods: make filtered text red
-            const [_, elm, str] = js.match(/\)\),([a-zA-Z]+)\.innerHTML=([a-zA-Z]+),/);
-            js = js.replace(_, _ + `${filterFunction}(${str})&&!arguments[2]&&(${elm}.style.color="red"),`);
+            let [_, elm, str] = js.match(/\)\),([a-zA-Z]+)\.innerHTML=([a-zA-Z]+),/);
+            modifyJS(_, _ + `${filterFunction}(${str})&&!arguments[2]&&(${elm}.style.color="red"),`);
             //skins
             match = js.match(/inventory\[[A-z]\].id===[A-z].id\)return!0;return!1/);
-            if (match) js = js.replace(match[0], match[0] + `||window.getSkinHack()`);
+            if (match) modifyJS(match[0], match[0] + `||window.getSkinHack()`);
             //reset join/leave msgs
-            js = js.replace(',console.log("joinGame()',',window.newGame=true,console.log("value changed, also joinGame()');
+            modifyJS(',console.log("joinGame()',',window.newGame=true,console.log("value changed, also joinGame()');
             //get rid of tutorial popup because its a stupid piece of shit
-            js=js.replace(',vueApp.onTutorialPopupClick()','');
+            modifyJS(',vueApp.onTutorialPopupClick()','');
             //pointer escape
-            js=js.replace('onpointerlockchange=function(){','onpointerlockchange=function(){if (window.getPointerEscape()) {return};');
+            modifyJS('onpointerlockchange=function(){','onpointerlockchange=function(){if (window.getPointerEscape()) {return};');
 
-            js=js.replace('console.log("startShellShockers"),', `console.log("SHELLFARM ACTIVE!"),`);
+            modifyJS('console.log("startShellShockers"),', `console.log("SHELLFARM ACTIVE!"),`);
             console.log(js);
+
+            H.playing = js.match(/this\.hp=[a-zA-Z]+\.hp,this\.([a-zA-Z]+)=[a-zA-Z]+\.[a-zA-Z]+,this/)[1];
+
             return js;
         };
     };
 
+    const findKeyWithProperty = function(obj, propertyToFind) {
+        for (const key in obj) {
+            if (obj[key] === null || obj[key] === undefined) {
+                continue;
+            };
+            if (!!obj[key] && (typeof(obj[key])=='object' || typeof(obj[key])=='function') && obj[key].hasOwnProperty(propertyToFind)) {
+                return key;
+            };
+        };
+        // Property not found
+        return null;
+    };
+
     const mainLoop = function () {
         const oneTime = function () {
+            H.actor = findKeyWithProperty(ss.MYPLAYER,"mesh");
             ranOneTime=true;
         };
         const initVars = function () {
@@ -907,16 +945,16 @@
                 };
             };
 
-            ss.MYPLAYER.actor.scene.texturesEnabled=extract("enableTextures");
+            ss.MYPLAYER[H.actor].scene.texturesEnabled=extract("enableTextures");
         };
         const iterateOverPlayers = function () {
             const objExists=Date.now();
 
             ss.PLAYERS.forEach(player=>{
-                if (player && (player!==ss.MYPLAYER) && player.playing && (player.hp>0) && ((!ss.MYPLAYER.team)||( player.team!==ss.MYPLAYER.team))) {
-                    if (player.actor) {
+                if (player && (player!==ss.MYPLAYER) && player[H.playing] && (player.hp>0) && ((!ss.MYPLAYER.team)||( player.team!==ss.MYPLAYER.team))) {
+                    if (player[H.actor]) {
                         eggSize=extract("eggSize");
-                        player.actor.bodyMesh.scaling = {x:eggSize, y:eggSize, z:eggSize};
+                        player[H.actor].bodyMesh.scaling = {x:eggSize, y:eggSize, z:eggSize};
                     };
                     player.exists=objExists;
                 };
