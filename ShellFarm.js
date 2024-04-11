@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ShellFarm V2 - Utilities for Shell Shockers.
-// @description  Some useful mods for Shell Shockers, including infinite history, FOV, Custom SFX, skyboxes and more. Bindable too.
+// @description  FIXED! Some useful mods for Shell Shockers, including infinite history, FOV, Custom SFX, skyboxes and more. Bindable too.
 // @author       onlypuppy7
 // @namespace    https://github.com/onlypuppy7/ShellFarmClientShellShockers/
 // @supportURL   https://github.com/onlypuppy7/ShellFarmClientShellShockers/issues/
