@@ -28,7 +28,7 @@
 // @version      2.0.1
 
 // @match        *://*.shellshock.io/*
-// @match        *://*.shell.onlypuppy7.online/*
+// @match        *://*.shell.onlypuppy7.org/*
 // @match        *://*.algebra.best/*   
 // @match        *://*.algebra.vip/*
 // @match        *://*.biologyclass.club/*
